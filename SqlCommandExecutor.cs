@@ -76,16 +76,32 @@ public class SqlCommandExecutor
 
         if (parameters != null)
         {
-            foreach (var param in config.Parameters)
+            foreach (var paramConfig in config.Parameters)
             {
-                if (parameters.ContainsKey(param.Name))
+                if (parameters.ContainsKey(paramConfig.Name))
                 {
-                    command.Parameters.AddWithValue(param.Name, parameters[param.Name]);
+                    var parameter = command.Parameters.Add(paramConfig.Name, GetSqlDbType(paramConfig.Type));
+                    parameter.Value = parameters[paramConfig.Name];
                 }
             }
         }
 
         return command;
+    }
+
+    private SqlDbType GetSqlDbType(string type)
+    {
+        return type.ToLower() switch
+        {
+            "int" => SqlDbType.Int,
+            "string" => SqlDbType.NVarChar,
+            "datetime" => SqlDbType.DateTime,
+            "decimal" => SqlDbType.Decimal,
+            "bit" => SqlDbType.Bit,
+            "bigint" => SqlDbType.BigInt,
+            "uniqueidentifier" => SqlDbType.UniqueIdentifier,
+            _ => SqlDbType.NVarChar
+        };
     }
 
     public void ListAvailableCommands()
