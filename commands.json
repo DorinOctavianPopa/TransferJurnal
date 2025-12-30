@@ -3,7 +3,7 @@
     {
       "name": "GetAllRecords",
       "type": "query",
-      "sql": "SELECT * FROM TableName",
+      "sql": "SELECT * FROM Conturi",
       "parameters": []
     },
     {

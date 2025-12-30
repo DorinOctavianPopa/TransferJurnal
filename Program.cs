@@ -16,7 +16,7 @@ try
         .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
         .Build();
 
-var connectionString = configuration.GetConnectionString("DefaultConnection");
+    var connectionString = configuration.GetConnectionString("DefaultConnection");
     
     if (string.IsNullOrEmpty(connectionString))
     {
@@ -54,17 +54,61 @@ var connectionString = configuration.GetConnectionString("DefaultConnection");
     // Create SQL command executor
     var executor = new SqlCommandExecutor(connectionString, commandsConfig);
         
-    WriteSuccess("Application initialized successfully!");
-    Console.WriteLine($"Connection string loaded from appsettings.json");
-    Console.WriteLine($"Loaded {commandsConfig.Commands.Count} SQL commands from commands.json\n");
+    //WriteSuccess("Application initialized successfully!");
+    //Console.WriteLine($"Connection string loaded from appsettings.json");
+    //Console.WriteLine($"Loaded {commandsConfig.Commands.Count} SQL commands from commands.json\n");
 
     // List available commands
-    executor.ListAvailableCommands();
+    //executor.ListAvailableCommands();
+
+    // Check if execution plan exists
+    var executionPlanPath = "execution-plan.json";
+    if (File.Exists(executionPlanPath))
+    {
+        WriteInfo($"\n📋 Found execution plan: {executionPlanPath}");
+        Console.Write("Do you want to execute the plan? (Y/N): ");
+        var response = Console.ReadLine()?.Trim().ToUpper();
+
+        if (response == "Y" || response == "YES")
+        {
+            // Load and execute the plan
+            var planJson = await File.ReadAllTextAsync(executionPlanPath);
+            var planConfig = JsonSerializer.Deserialize<ExecutionPlanConfig>(planJson, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (planConfig != null)
+            {
+                var engine = new ExecutionEngine(executor, planConfig);
+                var result = await engine.ExecuteAsync();
+
+                // Optionally save execution result
+                var resultPath = $"execution-result-{DateTime.Now:yyyyMMdd-HHmmss}.json";
+                var resultJson = JsonSerializer.Serialize(result, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                await File.WriteAllTextAsync(resultPath, resultJson);
+                WriteSuccess($"\n✓ Execution result saved to: {resultPath}");
+            }
+        }
+        else
+        {
+            WriteInfo("\nExecution plan skipped.");
+        }
+    }
+    else
+    {
+        WriteWarning($"\n⚠ No execution plan found at: {executionPlanPath}");
+        WriteInfo("You can create an execution-plan.json file to automate command execution.");
+    }
 
     Console.WriteLine("\n=====================================");
     WriteInfo("Application is ready to execute SQL commands.");
     Console.WriteLine("Commands can be modified in commands.json without recompiling.");
     Console.WriteLine("Connection string can be updated in appsettings.json.");
+    Console.WriteLine("Create execution-plan.json to automate command execution.");
 }
 catch (Exception ex)
 {

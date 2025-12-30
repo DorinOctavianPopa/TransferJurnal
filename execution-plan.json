@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Execution plan for SQL commands with parameter chaining support",
+  "executionPlan": {
+    "name": "Sample Execution Plan with Parameter Chaining",
+    "description": "Example showing parameter passing between commands",
+    "continueOnError": false,
+    "outputResults": true,
+    "commands": [
+      {
+        "commandName": "GetAllRecords",
+        "enabled": true,
+        "description": "Retrieve all records from the table",
+        "parameters": {},
+        "outputOptions": {
+          "displayResults": true,
+          "maxRows": 100,
+          "exportToFile": false,
+          "exportPath": ""
+        },
+        "outputMapping": {
+          "storeResults": true,
+          "resultKey": "allRecords"
+        }
+      },
+      {
+        "commandName": "GetRecordById",
+        "enabled": true,
+        "description": "Get a specific record by ID from previous result",
+        "parameters": {
+          "@Id": {
+            "type": "fromPreviousCommand",
+            "sourceCommand": "GetAllRecords",
+            "sourceColumn": "Id",
+            "sourceRow": 0
+          }
+        },
+        "outputOptions": {
+          "displayResults": true,
+          "maxRows": 10
+        },
+        "outputMapping": {
+          "storeResults": true,
+          "resultKey": "selectedRecord"
+        }
+      },
+      {
+        "commandName": "UpdateRecord",
+        "enabled": true,
+        "description": "Update record using data from previous query",
+        "parameters": {
+          "@Value1": {
+            "type": "fromPreviousCommand",
+            "sourceCommand": "selectedRecord",
+            "sourceColumn": "Column1",
+            "sourceRow": 0,
+            "transform": "uppercase"
+          },
+          "@Id": {
+            "type": "static",
+            "value": 1
+          }
+        },
+        "outputOptions": {
+          "displayResults": true
+        }
+      },
+      {
+        "commandName": "InsertRecord",
+        "enabled": true,
+        "description": "Insert new record with computed values",
+        "parameters": {
+          "@Value1": {
+            "type": "static",
+            "value": "New Record"
+          },
+          "@Value2": {
+            "type": "expression",
+            "expression": "CONCAT({GetAllRecords.Column1[0]}, ' - ', {selectedRecord.Column2[0]})"
+          }
+        },
+        "outputOptions": {
+          "displayResults": true
+        }
+      },
+      {
+        "commandName": "ExecuteStoredProcedure",
+        "enabled": false,
+        "description": "Execute a stored procedure",
+        "parameters": {
+          "@Param1": "StringValue",
+          "@Param2": 123
+        },
+        "outputOptions": {
+          "displayResults": true,
+          "maxRows": 50
+        }
+      }
+    ]
+  },
+  "globalSettings": {
+    "timeout": 30,
+    "logLevel": "Info",
+    "timestampFormat": "yyyy-MM-dd HH:mm:ss",
+    "errorHandling": {
+      "continueOnError": false,
+      "logErrors": true,
+      "emailOnError": false
+    }
+  }
+}
