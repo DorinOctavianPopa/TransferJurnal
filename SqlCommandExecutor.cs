@@ -74,15 +74,18 @@ public class SqlCommandExecutor
             command.CommandType = CommandType.Text;
         }
 
-        if (parameters != null)
+        if (parameters != null && config.Parameters.Any())
         {
             foreach (var paramConfig in config.Parameters)
             {
-                if (parameters.ContainsKey(paramConfig.Name))
+                if (!parameters.ContainsKey(paramConfig.Name))
                 {
-                    var parameter = command.Parameters.Add(paramConfig.Name, GetSqlDbType(paramConfig.Type));
-                    parameter.Value = parameters[paramConfig.Name];
+                    throw new ArgumentException($"Required parameter '{paramConfig.Name}' not provided for command '{config.Name}'.");
                 }
+
+                var parameter = command.Parameters.Add(paramConfig.Name, GetSqlDbType(paramConfig.Type));
+                var paramValue = parameters[paramConfig.Name];
+                parameter.Value = paramValue ?? DBNull.Value;
             }
         }
 
@@ -100,7 +103,7 @@ public class SqlCommandExecutor
             "bit" => SqlDbType.Bit,
             "bigint" => SqlDbType.BigInt,
             "uniqueidentifier" => SqlDbType.UniqueIdentifier,
-            _ => SqlDbType.NVarChar
+            _ => throw new ArgumentException($"Unsupported parameter type: {type}. Supported types are: Int, String, DateTime, Decimal, Bit, BigInt, UniqueIdentifier.")
         };
     }
 
