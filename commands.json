@@ -1,0 +1,66 @@
+{
+  "commands": [
+    {
+      "name": "GetAllRecords",
+      "type": "query",
+      "sql": "SELECT * FROM TableName",
+      "parameters": []
+    },
+    {
+      "name": "GetRecordById",
+      "type": "query",
+      "sql": "SELECT * FROM TableName WHERE Id = @Id",
+      "parameters": [
+        {
+          "name": "@Id",
+          "type": "Int"
+        }
+      ]
+    },
+    {
+      "name": "InsertRecord",
+      "type": "nonquery",
+      "sql": "INSERT INTO TableName (Column1, Column2) VALUES (@Value1, @Value2)",
+      "parameters": [
+        {
+          "name": "@Value1",
+          "type": "String"
+        },
+        {
+          "name": "@Value2",
+          "type": "String"
+        }
+      ]
+    },
+    {
+      "name": "UpdateRecord",
+      "type": "nonquery",
+      "sql": "UPDATE TableName SET Column1 = @Value1 WHERE Id = @Id",
+      "parameters": [
+        {
+          "name": "@Value1",
+          "type": "String"
+        },
+        {
+          "name": "@Id",
+          "type": "Int"
+        }
+      ]
+    },
+    {
+      "name": "ExecuteStoredProcedure",
+      "type": "storedprocedure",
+      "sql": "sp_ProcedureName",
+      "parameters": [
+        {
+          "name": "@Param1",
+          "type": "String"
+        },
+        {
+          "name": "@Param2",
+          "type": "Int"
+        }
+      ]
+    }
+  ]
+}
