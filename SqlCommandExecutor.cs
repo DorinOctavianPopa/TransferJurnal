@@ -74,11 +74,11 @@ public class SqlCommandExecutor
             command.CommandType = CommandType.Text;
         }
 
-        if (parameters != null && config.Parameters.Any())
+        if (config.Parameters.Any())
         {
             foreach (var paramConfig in config.Parameters)
             {
-                if (!parameters.ContainsKey(paramConfig.Name))
+                if (parameters == null || !parameters.ContainsKey(paramConfig.Name))
                 {
                     throw new ArgumentException($"Required parameter '{paramConfig.Name}' not provided for command '{config.Name}'.");
                 }
