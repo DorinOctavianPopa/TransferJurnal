@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Input parameters file for execution plan - external values that can be injected into command parameters",
+  "version": "1.0",
+  "parameters": {
+    "recordId": 12345,
+    "searchTerm": "example",
+    "startDate": "2025-01-01",
+    "endDate": "2025-12-31",
+    "statusFilter": "Active",
+    "batchSize": 100,
+    "userName": "Admin",
+    "departmentId": 5,
+    "enableLogging": true,
+    "thresholdValue": 75.5,
+    "emailAddress": "admin@example.com",
+    "filePath": "C:\\output\\results.csv",
+    "DossierNumber": ""
+
+  },
+  "comments": {
+    "usage": "Define reusable parameters here that can be referenced in execution-plan.json",
+    "syntax": "In execution-plan.json, use parameter type 'fromInput' to reference these values",
+    "example": {
+      "commandParameter": {
+        "@Id": {
+          "type": "fromInput",
+          "inputKey": "recordId"
+        }
+      }
+    }
+  }
+}

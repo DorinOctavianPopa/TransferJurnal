@@ -53,19 +53,51 @@ try
 
     // Create SQL command executor
     var executor = new SqlCommandExecutor(connectionString, commandsConfig);
-        
-    //WriteSuccess("Application initialized successfully!");
-    //Console.WriteLine($"Connection string loaded from appsettings.json");
-    //Console.WriteLine($"Loaded {commandsConfig.Commands.Count} SQL commands from commands.json\n");
-
-    // List available commands
-    //executor.ListAvailableCommands();
 
     // Check if execution plan exists
     var executionPlanPath = "execution-plan.json";
     if (File.Exists(executionPlanPath))
     {
         WriteInfo($"\n📋 Found execution plan: {executionPlanPath}");
+        
+        // Check if input parameters file exists
+        var inputParametersPath = "input.json";
+        InputParametersConfig? inputParameters = null;
+        
+        if (File.Exists(inputParametersPath))
+        {
+            WriteInfo($"📥 Found input parameters: {inputParametersPath}");
+            try
+            {
+                var inputJson = await File.ReadAllTextAsync(inputParametersPath);
+                inputParameters = JsonSerializer.Deserialize<InputParametersConfig>(inputJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                
+                if (inputParameters?.Parameters != null && inputParameters.Parameters.Any())
+                {
+                    WriteSuccess($"   Loaded {inputParameters.Parameters.Count} input parameters");
+                    Console.WriteLine("   Available parameters:");
+                    foreach (var param in inputParameters.Parameters)
+                    {
+                        Console.WriteLine($"     • {param.Key} = {param.Value}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteWarning($"   ⚠ Failed to load input parameters: {ex.Message}");
+                WriteWarning("   Continuing without input parameters...");
+            }
+        }
+        else
+        {
+            WriteInfo($"ℹ  No input parameters file found at: {inputParametersPath}");
+            WriteInfo("   You can create input.json to provide external parameter values.");
+        }
+        
+        Console.WriteLine();
         Console.Write("Do you want to execute the plan? (Y/N): ");
         var response = Console.ReadLine()?.Trim().ToUpper();
 
@@ -80,7 +112,7 @@ try
 
             if (planConfig != null)
             {
-                var engine = new ExecutionEngine(executor, planConfig);
+                var engine = new ExecutionEngine(executor, planConfig, inputParameters);
                 var result = await engine.ExecuteAsync();
 
                 // Optionally save execution result
@@ -109,6 +141,7 @@ try
     Console.WriteLine("Commands can be modified in commands.json without recompiling.");
     Console.WriteLine("Connection string can be updated in appsettings.json.");
     Console.WriteLine("Create execution-plan.json to automate command execution.");
+    Console.WriteLine("Create input.json to provide external parameter values.");
 }
 catch (Exception ex)
 {

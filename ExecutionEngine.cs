@@ -9,11 +9,13 @@ public class ExecutionEngine
     private readonly SqlCommandExecutor _executor;
     private readonly ExecutionPlanConfig _config;
     private readonly Dictionary<string, DataTable> _storedResults = new();
+    private readonly InputParametersConfig? _inputParameters;
 
-    public ExecutionEngine(SqlCommandExecutor executor, ExecutionPlanConfig config)
+    public ExecutionEngine(SqlCommandExecutor executor, ExecutionPlanConfig config, InputParametersConfig? inputParameters = null)
     {
         _executor = executor;
         _config = config;
+        _inputParameters = inputParameters;
     }
 
     public async Task<ExecutionResult> ExecuteAsync()
@@ -156,6 +158,7 @@ public class ExecutionEngine
             {
                 "static" => ConvertJsonElement(JsonSerializer.SerializeToElement(paramDef.Value)),
                 "frompreviouscommand" => ResolveFromPreviousCommand(paramDef),
+                "frominput" => ResolveFromInput(paramDef),
                 "expression" => await ResolveExpressionAsync(paramDef.Expression),
                 "aggregate" => ResolveAggregate(paramDef),
                 _ => throw new ArgumentException($"Unknown parameter type: {paramDef.Type}")
@@ -202,6 +205,34 @@ public class ExecutionEngine
         }
 
         WriteInfo($"        📎 Resolved {paramDef.SourceCommand}.{paramDef.SourceColumn}[{paramDef.SourceRow}] = {value}");
+        
+        return value;
+    }
+
+    private object ResolveFromInput(ParameterDefinition paramDef)
+    {
+        if (string.IsNullOrEmpty(paramDef.InputKey))
+        {
+            throw new ArgumentException("InputKey must be specified for fromInput type");
+        }
+
+        if (_inputParameters == null || _inputParameters.Parameters == null)
+        {
+            throw new InvalidOperationException("No input parameters loaded. Ensure input.json exists and is properly formatted.");
+        }
+
+        if (!_inputParameters.Parameters.TryGetValue(paramDef.InputKey, out var value))
+        {
+            throw new ArgumentException($"Input parameter '{paramDef.InputKey}' not found in input.json");
+        }
+
+        // Apply transformation if specified
+        if (!string.IsNullOrEmpty(paramDef.Transform) && value != null)
+        {
+            value = ApplyTransformation(value.ToString() ?? string.Empty, paramDef.Transform);
+        }
+
+        WriteInfo($"        📥 Resolved from input: {paramDef.InputKey} = {value}");
         
         return value;
     }
@@ -499,4 +530,4 @@ public class CommandResult
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
     public TimeSpan Duration { get; set; }
-}       
+}

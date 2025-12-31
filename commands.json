@@ -1,10 +1,15 @@
 {
   "commands": [
     {
-      "name": "GetAllRecords",
+      "name": "GetDosarRecord",
       "type": "query",
-      "sql": "SELECT * FROM Conturi",
-      "parameters": []
+      "sql": "SELECT * FROM Dosar Where numar_national=@nrDosar",
+      "parameters": [
+        {
+          "name": "@nrDosar",
+          "type": "String"
+        }
+      ]
     },
     {
       "name": "GetRecordById",

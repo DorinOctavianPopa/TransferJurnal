@@ -49,6 +49,7 @@ public class ParameterDefinition
     public string Transform { get; set; } = string.Empty; // uppercase, lowercase, trim, etc.
     public string Expression { get; set; } = string.Empty;
     public string AggregateFunction { get; set; } = string.Empty; // count, sum, avg, min, max
+    public string InputKey { get; set; } = string.Empty;  // Add this line
 }
 
 public class GlobalSettings

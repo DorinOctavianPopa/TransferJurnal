@@ -8,9 +8,9 @@
     "outputResults": true,
     "commands": [
       {
-        "commandName": "GetAllRecords",
+        "commandName": "GetDosarRecord",
         "enabled": true,
-        "description": "Retrieve all records from the table",
+        "description": "Retrieve specified dosar records from the table",
         "parameters": {},
         "outputOptions": {
           "displayResults": true,
